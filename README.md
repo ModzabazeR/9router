@@ -113,6 +113,32 @@ npm run build
 PORT=20128 HOSTNAME=0.0.0.0 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run start
 ```
 
+**With [mise](https://mise.jdx.dev) (recommended):**
+
+`mise.toml` pins the Node toolchain (matching the Docker image) and wraps the
+common commands as tasks, so you don't manage Node versions or env by hand:
+
+```bash
+mise install        # install the pinned Node toolchain
+cp .env.example .env # then fill in JWT_SECRET, INITIAL_PASSWORD, ...
+mise run setup      # install dependencies
+mise run dev        # dev server on http://localhost:20127
+
+# Production (mirrors the Docker entrypoint: standalone build + custom-server.js)
+mise run build      # build the standalone bundle
+mise run start      # serve on http://localhost:20128 (loads .env)
+```
+
+| Task | Description |
+|------|-------------|
+| `mise run setup` | Install all dependencies (incl. build tooling) |
+| `mise run dev` | Next.js dev server (`:20127`) |
+| `mise run build` | Production standalone build |
+| `mise run start` | Production server via `custom-server.js` (`:20128`) |
+| `mise run lint` | Run ESLint |
+
+Run `mise tasks` to list them all.
+
 Default URLs:
 - Dashboard: `http://localhost:20128/dashboard`
 - OpenAI-compatible API: `http://localhost:20128/v1`
