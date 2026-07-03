@@ -1,0 +1,38 @@
+# mise configuration for 9router
+# https://mise.jdx.dev
+#
+# Quick start:
+#   mise install       # install pinned toolchain (Node)
+#   mise run setup     # install npm dependencies
+#   mise run dev       # start the Next.js dev server on :20127
+#
+# Run `mise tasks` to see everything available.
+
+[tools]
+# Matches the Node major used by the Dockerfile (node:22-alpine).
+node = "22"
+
+[env]
+# Load local overrides from .env if present (copy from .env.example).
+_.file = { path = ".env", redact = true }
+NEXT_TELEMETRY_DISABLED = "1"
+
+[tasks.setup]
+description = "Install npm dependencies"
+run = "npm install"
+
+[tasks.dev]
+description = "Start the Next.js dev server (:20127)"
+run = "npm run dev"
+
+[tasks.build]
+description = "Build the production bundle"
+run = "npm run build"
+
+[tasks.start]
+description = "Start the production server"
+run = "npm run start"
+
+[tasks.lint]
+description = "Run ESLint"
+run = "npx eslint ."
