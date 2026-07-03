@@ -13,25 +13,45 @@
 node = "22"
 
 [env]
-# Load local overrides from .env if present (copy from .env.example).
-_.file = { path = ".env", redact = true }
 NEXT_TELEMETRY_DISABLED = "1"
+# NOTE: .env is intentionally NOT loaded globally here. It carries
+# NODE_ENV=production, which would make `npm install` drop devDependencies
+# (tailwind/postcss/eslint) and break `next build`/`next dev`. It is loaded
+# only by the production `start` task below, mirroring Docker's --env-file.
 
 [tasks.setup]
-description = "Install npm dependencies"
-run = "npm install"
+description = "Install all dependencies (including build/dev tooling)"
+# --include=dev guards against a stray NODE_ENV=production in the shell that
+# would otherwise omit the devDependencies required to build.
+run = "npm install --include=dev"
 
 [tasks.dev]
 description = "Start the Next.js dev server (:20127)"
 run = "npm run dev"
 
 [tasks.build]
-description = "Build the production bundle"
+description = "Build the production (standalone) bundle"
 run = "npm run build"
 
+[tasks.bundle]
+description = "Assemble the standalone bundle like the Docker image"
+# Next's `output: standalone` emits .next/standalone/server.js but not the
+# static assets. Mirror the Dockerfile: copy public/ and .next/static/ next to
+# the server, and drop custom-server.js in so its require("./server.js")
+# resolves (next/node-forge resolve via the root node_modules).
+run = [
+  "rm -rf .next/standalone/public && cp -R public .next/standalone/public",
+  "rm -rf .next/standalone/.next/static && cp -R .next/static .next/standalone/.next/static",
+  "cp custom-server.js .next/standalone/custom-server.js",
+]
+
 [tasks.start]
-description = "Start the production server"
-run = "npm run start"
+description = "Run the production server (custom-server.js, as in Docker)"
+depends = ["bundle"]
+# Load runtime config from .env (like `docker run --env-file .env`), then apply
+# production defaults. Keys already set in .env win over these defaults.
+env = { "_.file" = ".env", NODE_ENV = "production", HOSTNAME = "0.0.0.0", PORT = "20128" }
+run = "node .next/standalone/custom-server.js"
 
 [tasks.lint]
 description = "Run ESLint"
