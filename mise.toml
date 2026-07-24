@@ -56,3 +56,9 @@ run = "node .next/standalone/custom-server.js"
 [tasks.lint]
 description = "Run ESLint"
 run = "npx eslint ."
+
+[tasks.update]
+description = "Sync fork with upstream, rebuild, and redeploy (rolls back on failure)"
+# Reverts to the previous commit on merge conflict / build failure. See the
+# script header for the full flow. Pass --no-push to skip pushing to origin.
+run = "scripts/update-fork.sh"
